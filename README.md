@@ -1,5 +1,6 @@
 # react-go-todo-app
-This app is about learning Go and reviewing React by following this youtube series:  https://www.youtube.com/watch?v=qAaQOUOKtzc&list=PLpyN7XOIBMkmcRX7ahsoHeQxJoFAYhvzx&index=37&t=184s.
+This app is about learning Go and reviewing React by following this youtube series:  https://www.youtube.com/playlist?list=PLZ9MjI7zYVg2KgSZml7C5o9NEaGdVcClH.
+
 At part 1 | 4:52min
 
 # Steps

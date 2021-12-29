@@ -1,5 +1,6 @@
 import { Todo } from "../entities/Todo"
 import { TodoItem } from "./TodoItem"
+import './TodoList.scss'
 
 type Props = {
   todos: Todo[]

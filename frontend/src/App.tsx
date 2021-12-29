@@ -10,6 +10,7 @@ function App() {
       <TodoList 
         todos={[
           {title: "do dishes", isCompleted: true},
+          {title: "homework", description: "history project", isCompleted: false},
           {title: "mow the lawn", isCompleted: false}
         ]} 
       />
