@@ -133,6 +133,7 @@ class ToDoList extends Component {
             TO DO LIST
           </Header>
         </div>
+
         <div className="row">
           <Form onSubmit={this.onSubmit}>
             <Input
@@ -143,9 +144,11 @@ class ToDoList extends Component {
               fluid
               placeholder="Create Task"
             />
-            {{/* button for creating task */}}
           </Form>
         </div>
+        
+        {/* button for creating task */}
+
         <div className="row">
           <Card.Group>{this.state.items}</Card.Group>
         </div>
