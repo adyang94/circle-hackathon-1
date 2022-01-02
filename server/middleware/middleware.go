@@ -59,6 +59,9 @@ func createDBInstance() {
 func GetAllTasks(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/x-www-form-urlencoded")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	fmt.Println("Get all tasks start!")
+
 	payload := getAllTasks()
 	json.NewEncoder(w).Encode(payload)
 }
@@ -122,6 +125,8 @@ func getAllTasks() []primitive.M {
 		log.Fatal(err)
 	}
 
+	fmt.Println("GETTING ALL TASKS (cur):", cur)
+
 	var results []primitive.M
 
 	for cur.Next(context.Background()) {
@@ -130,13 +135,16 @@ func getAllTasks() []primitive.M {
 		if e != nil {
 			log.Fatal(e)
 		}
+		fmt.Println("GETTING ALL TASKS (result loop):", result)
 
-		results = append(results)
+		results = append(results, result)
 	}
 	if err := cur.Err(); err != nil {
 		log.Fatal(err)
 	}
 	cur.Close(context.Background())
+
+	fmt.Println("GETTING ALL RESULTS:", results)
 	return results
 }
 
