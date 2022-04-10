@@ -25,6 +25,8 @@ var token string = "Bearer QVBJX0tFWTpiNmFjMzFmMzAzOGJjNWRhMjNkY2ViMzk3NDBkNTk5M
 
 var users = []models.UserInfo{
 	{Username: "client1", Password: "client1", Payment: 123456},
+	{Username: "client3", Password: "client3", Payment: 131313},
+	{Username: "client2", Password: "client2", Payment: 123455},
 }
 
 func init() {
@@ -73,7 +75,8 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	var user models.UserInfo
 
 	json.NewDecoder(r.Body).Decode(&user)
-	var validUser := checkUserInfo(user)
+	validUser := checkUserInfo(user)
+	log.Println("ValidUser:  ", validUser)
 	json.NewEncoder(w).Encode(user)
 }
 
@@ -108,11 +111,17 @@ func GetListOfPayments(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreatePayment (w http.ResponseWriter, r *http.Request) {
-	var card models.CardDetails
+	// var card models.CardDetails
 }
 
-func checkUserInfo(user models.UserInfo) {
-	return true
+func checkUserInfo(user models.UserInfo) bool {
+	for _, profile := range users {
+		if user.Username == profile.Username {
+			return true
+		}
+	}
+	return false
+
 }
 
 /*
