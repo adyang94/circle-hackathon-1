@@ -73,7 +73,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	var user models.UserInfo
 
 	json.NewDecoder(r.Body).Decode(&user)
-	checkUserInfo(user)
+	var validUser := checkUserInfo(user)
 	json.NewEncoder(w).Encode(user)
 }
 
@@ -108,11 +108,11 @@ func GetListOfPayments(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreatePayment (w http.ResponseWriter, r *http.Request) {
-
+	var card models.CardDetails
 }
 
 func checkUserInfo(user models.UserInfo) {
-
+	return true
 }
 
 /*
