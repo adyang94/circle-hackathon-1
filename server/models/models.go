@@ -10,16 +10,16 @@ type UserInfo struct {
 }
 
 type CardDetails struct {
-	IdempotencyKey				string
+	IdempotencyKey					string
 	EncryptedData					string			`json:"encryptedData,omitempty"`
-	Name									string			`json:"name,omitempty"`
-	City									string			`json:"city,omitempty"`
-	Country								string			`json:"country,omitempty"`
-	Address								string			`json:"address,omitempty"`
-	ZipCode								int					`json:"zipcode,omitempty"`
-	ExpMonth							int					`json:"expMonth,omitempty"`
-	ExpYear								int					`json:"expYear,omitempty"`
-	Email									string			`json:"email,omitempty"`
-	SessionId							string
-	IpAddress							string
+	Name							string			`json:"name,omitempty"`
+	City							string			`json:"city,omitempty"`
+	Country							string			`json:"country,omitempty"`
+	Address							string			`json:"address,omitempty"`
+	ZipCode							int				`json:"zipcode,omitempty"`
+	ExpMonth						int				`json:"expMonth,omitempty"`
+	ExpYear							int				`json:"expYear,omitempty"`
+	Email							string			`json:"email,omitempty"`
+	SessionId						string
+	IpAddress						string
 }
