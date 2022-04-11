@@ -10,6 +10,7 @@ import (
 	"os"
 
 	"github.com/adyang94/react-go-todo-app/models"
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 
@@ -82,7 +83,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 func GetListOfPayments(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Get list of payments!")
-	 
+
 	//  Note::  Circle API returns all payments from then token specified, whether from same or different users.
 	//  We will use logged in users payment id to parse the list of payments, and return those that match.
 
@@ -110,8 +111,11 @@ func GetListOfPayments(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 }
 
-func CreatePayment (w http.ResponseWriter, r *http.Request) {
+func CreatePayment(w http.ResponseWriter, r *http.Request) {
 	// var card models.CardDetails
+	idKey := uuid.New()
+	log.Println(idKey)
+
 }
 
 func checkUserInfo(user models.UserInfo) bool {
