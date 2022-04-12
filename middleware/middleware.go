@@ -121,8 +121,6 @@ func GetListOfPayments(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("4: ", res.Body, "\n")
 	fmt.Println("5: ", string(body))
 	fmt.Println("6: ", body)
-	resp := models.Reponse{}
-	fmt.Println("5: ", json.Unmarshal(body, &resp))
 
 	//  Response back to client
 	w.Header().Set("Content-Type", "application/json")
@@ -136,7 +134,10 @@ func GetListOfPayments(w http.ResponseWriter, r *http.Request) {
 func CreatePayment(w http.ResponseWriter, r *http.Request) {
 
 	//  Retrieving data from request
-	paymentAmount :=
+	var reqBody models.Response
+	json.NewDecoder(r.Body).Decode(&reqBody.Data)
+	log.Println("REQBODY:  ", reqBody)
+	log.Println("REQBODY:  ", reqBody)
 
 	//  Creating idempotencyKey
 	idKey := uuid.New()
@@ -144,7 +145,7 @@ func CreatePayment(w http.ResponseWriter, r *http.Request) {
 
 	url := "https://api-sandbox.circle.com/v1/payments"
 
-	payload := strings.NewReader("{\"metadata\":{\"email\":\"satoshi@circle.com\",\"sessionId\":\"DE6FA86F60BB47B379307F851E238617\",\"ipAddress\":\"244.28.239.130\"},\"amount\":{\"amount\":\"312\",\"currency\":\"USD\"},\"autoCapture\":true,\"source\":{\"id\":\"b8627ae8-732b-4d25-b947-1df8f4007a29\",\"type\":\"card\"},\"idempotencyKey\":\""+ idKey.String() + "\",\"keyId\":\"key1\",\"verification\":\"none\"}")
+	payload := strings.NewReader("{\"metadata\":{\"email\":\"satoshi@circle.com\",\"sessionId\":\"DE6FA86F60BB47B379307F851E238617\",\"ipAddress\":\"244.28.239.130\"},\"amount\":{\"amount\":\"312\",\"currency\":\"USD\"},\"autoCapture\":true,\"source\":{\"id\":\"b8627ae8-732b-4d25-b947-1df8f4007a29\",\"type\":\"card\"},\"idempotencyKey\":\"" + idKey.String() + "\",\"keyId\":\"key1\",\"verification\":\"none\"}")
 
 	log.Println("PAYLOAD: ", payload)
 
@@ -159,12 +160,12 @@ func CreatePayment(w http.ResponseWriter, r *http.Request) {
 	defer res.Body.Close()
 	body, _ := ioutil.ReadAll(res.Body)
 
-	fmt.Println("RESPONSE:  ",res)
-	fmt.Println("RESPONSE BODY:  ",string(body))
+	fmt.Println("RESPONSE:  ", res)
+	fmt.Println("RESPONSE BODY:  ", string(body))
 
 }
 
-func CreateCard (w http.ResponseWriter, r *http.Request){
+func CreateCard(w http.ResponseWriter, r *http.Request) {
 
 }
 
