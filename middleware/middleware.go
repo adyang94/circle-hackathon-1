@@ -8,8 +8,9 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
-	"github.com/adyang94/react-go-todo-app/models"
+	"github.com/adyang94/circle-hackathon1/models"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
@@ -22,7 +23,7 @@ import (
 
 var collection *mongo.Collection
 
-var token string = "Bearer QVBJX0tFWTpiNmFjMzFmMzAzOGJjNWRhMjNkY2ViMzk3NDBkNTk5MTozMGViYjliNTM5NDQ5M2I4YzU5M2NiODQzMDFkOTI1MA=="
+var token string = "Bearer QVBJX0tFWTpjYTdmODZlNTNjN2ZmNDdmNjA5ZDRkNjg1ZmFlOTg3Nzo1NTUyYzk3NzkwOTczZmM2M2I5ZTNiNmFlYTgxOTI3Mg=="
 
 var users = []models.UserInfo{
 	{Username: "client1", Password: "client1", Payment: 123456},
@@ -78,7 +79,15 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	json.NewDecoder(r.Body).Decode(&user)
 	validUser := checkUserInfo(user)
 	log.Println("ValidUser:  ", validUser)
-	json.NewEncoder(w).Encode(user)
+
+	if validUser {
+		json.NewEncoder(w).Encode(user)
+		return
+	}
+
+	w.WriteHeader(http.StatusBadRequest)
+	json.NewEncoder(w).Encode("Login Unsuccessful.  Invalid credentials.")
+	return
 }
 
 func GetListOfPayments(w http.ResponseWriter, r *http.Request) {
@@ -100,27 +109,68 @@ func GetListOfPayments(w http.ResponseWriter, r *http.Request) {
 
 	res, _ := http.DefaultClient.Do(req)
 
+	fmt.Println("1: ", res, "\n")
+
+	fmt.Println("2: ", res.Body, "\n")
+	fmt.Println("2.1: ", *res, "\n")
+
 	defer res.Body.Close()
 	body, _ := ioutil.ReadAll(res.Body)
 
-	fmt.Println(res)
-	fmt.Println(string(body))
+	fmt.Println("3: ", res, "\n")
+	fmt.Println("4: ", res.Body, "\n")
+	fmt.Println("5: ", string(body))
+	fmt.Println("6: ", body)
+	resp := models.Reponse{}
+	fmt.Println("5: ", json.Unmarshal(body, &resp))
 
 	//  Response back to client
-	w.Header().Set("Content-Type", "application/x-www-form-urlencoded")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusAccepted)
+	// w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	//  This reponse is a stringified JSON.  Need to make into JSON.
+	json.NewEncoder(w).Encode(string(body))
 }
 
 func CreatePayment(w http.ResponseWriter, r *http.Request) {
-	// var card models.CardDetails
+
+	//  Retrieving data from request
+	paymentAmount :=
+
+	//  Creating idempotencyKey
 	idKey := uuid.New()
 	log.Println(idKey)
+
+	url := "https://api-sandbox.circle.com/v1/payments"
+
+	payload := strings.NewReader("{\"metadata\":{\"email\":\"satoshi@circle.com\",\"sessionId\":\"DE6FA86F60BB47B379307F851E238617\",\"ipAddress\":\"244.28.239.130\"},\"amount\":{\"amount\":\"312\",\"currency\":\"USD\"},\"autoCapture\":true,\"source\":{\"id\":\"b8627ae8-732b-4d25-b947-1df8f4007a29\",\"type\":\"card\"},\"idempotencyKey\":\""+ idKey.String() + "\",\"keyId\":\"key1\",\"verification\":\"none\"}")
+
+	log.Println("PAYLOAD: ", payload)
+
+	req, _ := http.NewRequest("POST", url, payload)
+
+	req.Header.Add("Accept", "application/json")
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Authorization", token)
+
+	res, _ := http.DefaultClient.Do(req)
+
+	defer res.Body.Close()
+	body, _ := ioutil.ReadAll(res.Body)
+
+	fmt.Println("RESPONSE:  ",res)
+	fmt.Println("RESPONSE BODY:  ",string(body))
+
+}
+
+func CreateCard (w http.ResponseWriter, r *http.Request){
 
 }
 
 func checkUserInfo(user models.UserInfo) bool {
 	for _, profile := range users {
-		if user.Username == profile.Username {
+		if (user.Username == profile.Username) && (user.Password == profile.Password) {
 			return true
 		}
 	}

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"github.com/adyang94/react-go-todo-app/router"
+	"github.com/adyang94/circle-hackathon1/router"
 )
 
 func main () {

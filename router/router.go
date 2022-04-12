@@ -1,7 +1,7 @@
 package router
 
 import (
-	"github.com/adyang94/react-go-todo-app/middleware"
+	"github.com/adyang94/circle-hackathon1/middleware"
 	"github.com/gorilla/mux"
 )
 
@@ -10,6 +10,7 @@ func Router() *mux.Router {
 	router.HandleFunc("/api/login", middleware.Login).Methods("POST", "OPTIONS")
 	router.HandleFunc("/api/getListOfPayments", middleware.GetListOfPayments).Methods("GET", "OPTIONS")
 	router.HandleFunc("/api/createPayment", middleware.CreatePayment).Methods("POST", "OPTIONS")
+	router.HandleFunc("/api/createCard", middleware.CreateCard).Methods("POST", "OPTIONS")
 
 	/*
 		router.HandleFunc("/api/task", middleware.GetAllTasks).Methods("GET", "OPTIONS")
