@@ -41,7 +41,7 @@ type Response struct {
 }
 
 type PaymentDetails struct {
-	Metadata 		map[string]interface{} `json:"metadata,omitempty"`
-	Amount 			map[string]interface{} `json:"amount,omitempty"`
-	Source			map[string]interface{} `json:"source,omitempty"`
+	Metadata map[string]interface{} `json:"metadata,omitempty"`
+	Amount   map[string]interface{} `json:"amount,omitempty"`
+	Source   map[string]interface{} `json:"source,omitempty"`
 }

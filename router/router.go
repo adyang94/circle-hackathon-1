@@ -12,7 +12,7 @@ func Router() *mux.Router {
 	router.HandleFunc("/api/getListOfPayments", middleware.GetListOfPayments).Methods("GET", "OPTIONS")
 
 	router.HandleFunc("/api/createPayment", middleware.CreatePayment).Methods("POST", "OPTIONS")
-	
+
 	router.HandleFunc("/api/createCard", middleware.CreateCard).Methods("POST", "OPTIONS")
 
 	/*
