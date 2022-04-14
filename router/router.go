@@ -8,8 +8,11 @@ import (
 func Router() *mux.Router {
 	router := mux.NewRouter()
 	router.HandleFunc("/api/login", middleware.Login).Methods("POST", "OPTIONS")
+
 	router.HandleFunc("/api/getListOfPayments", middleware.GetListOfPayments).Methods("GET", "OPTIONS")
+
 	router.HandleFunc("/api/createPayment", middleware.CreatePayment).Methods("POST", "OPTIONS")
+	
 	router.HandleFunc("/api/createCard", middleware.CreateCard).Methods("POST", "OPTIONS")
 
 	/*

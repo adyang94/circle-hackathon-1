@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"reflect"
 	"strings"
 
 	"github.com/adyang94/circle-hackathon1/models"
@@ -31,9 +32,13 @@ var users = []models.UserInfo{
 	{Username: "client2", Password: "client2", Payment: 123455},
 }
 
+var testCards = []string{
+	"4757140000000001", "5102420000000006",
+}
+
 func init() {
 	loadTheEnv()
-	createDBInstance()
+	// createDBInstance()
 }
 
 func loadTheEnv() {
@@ -109,18 +114,18 @@ func GetListOfPayments(w http.ResponseWriter, r *http.Request) {
 
 	res, _ := http.DefaultClient.Do(req)
 
-	fmt.Println("1: ", res, "\n")
+	fmt.Println("1: ", res)
 
-	fmt.Println("2: ", res.Body, "\n")
-	fmt.Println("2.1: ", *res, "\n")
+	fmt.Println("2: ", res.Body)
+	fmt.Println("2.1: ", *res)
 
 	defer res.Body.Close()
 	body, _ := ioutil.ReadAll(res.Body)
 
-	fmt.Println("3: ", res, "\n")
-	fmt.Println("4: ", res.Body, "\n")
+	fmt.Println("3: ", res)
+	fmt.Println("4: ", res.Body)
 	fmt.Println("5: ", string(body))
-	fmt.Println("6: ", body)
+	// fmt.Println("6: ", body)
 
 	//  Response back to client
 	w.Header().Set("Content-Type", "application/json")
@@ -132,12 +137,29 @@ func GetListOfPayments(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreatePayment(w http.ResponseWriter, r *http.Request) {
-
 	//  Retrieving data from request
-	var reqBody models.Response
-	json.NewDecoder(r.Body).Decode(&reqBody.Data)
-	log.Println("REQBODY:  ", reqBody)
-	log.Println("REQBODY:  ", reqBody)
+	var PaymentDetails models.PaymentDetails
+	json.NewDecoder(r.Body).Decode(&PaymentDetails)
+	log.Println("REQBODY:  ", PaymentDetails)
+	log.Println("REQBODY LEN:  ", len(PaymentDetails.Metadata))
+
+	if len(PaymentDetails.Metadata) == 0 || len(PaymentDetails.Source) == 0 || len(PaymentDetails.Amount) == 0 {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode("Payment Unsuccessful.  Please check submitted information and try again.")
+		return
+	}
+
+	validPaymentMethod := checkPaymentMethod(PaymentDetails)
+	log.Println("Valid Payment Method:  ", validPaymentMethod)
+
+	if !validPaymentMethod {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode("Payment Unsuccessful.  Please check submitted information and try again.")
+		return
+	}
+
+	log.Println("REQBODY.DATA:  ", PaymentDetails.Metadata)
+	log.Println("REQBODY.DATA1:  ", reflect.TypeOf(PaymentDetails.Metadata["email"]))
 
 	//  Creating idempotencyKey
 	idKey := uuid.New()
@@ -145,7 +167,7 @@ func CreatePayment(w http.ResponseWriter, r *http.Request) {
 
 	url := "https://api-sandbox.circle.com/v1/payments"
 
-	payload := strings.NewReader("{\"metadata\":{\"email\":\"satoshi@circle.com\",\"sessionId\":\"DE6FA86F60BB47B379307F851E238617\",\"ipAddress\":\"244.28.239.130\"},\"amount\":{\"amount\":\"312\",\"currency\":\"USD\"},\"autoCapture\":true,\"source\":{\"id\":\"b8627ae8-732b-4d25-b947-1df8f4007a29\",\"type\":\"card\"},\"idempotencyKey\":\"" + idKey.String() + "\",\"keyId\":\"key1\",\"verification\":\"none\"}")
+	payload := strings.NewReader("{\"metadata\":{\"email\":\"" + PaymentDetails.Metadata["email"].(string) + "\",\"sessionId\":\"DE6FA86F60BB47B379307F851E238617\",\"ipAddress\":\"244.28.239.130\"},\"amount\":{\"amount\":\"" + PaymentDetails.Amount["amount"].(string) + "\",\"currency\":\"USD\"},\"autoCapture\":true,\"source\":{\"id\":\"b8627ae8-732b-4d25-b947-1df8f4007a29\",\"type\":\"card\"},\"idempotencyKey\":\"" + idKey.String() + "\",\"keyId\":\"key1\",\"verification\":\"none\"}")
 
 	log.Println("PAYLOAD: ", payload)
 
@@ -162,7 +184,6 @@ func CreatePayment(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("RESPONSE:  ", res)
 	fmt.Println("RESPONSE BODY:  ", string(body))
-
 }
 
 func CreateCard(w http.ResponseWriter, r *http.Request) {
@@ -179,32 +200,18 @@ func checkUserInfo(user models.UserInfo) bool {
 
 }
 
+func checkPaymentMethod(payment models.PaymentDetails) bool {
+	for _, card := range testCards {
+		if payment.Source["id"] == card {
+			return true
+		}
+	}
+	return false
+}
+
 /*
 -----------------------------------------------------------
 */
-
-func GetAllTasks(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/x-www-form-urlencoded")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-
-	fmt.Println("Get all tasks start!")
-
-	// payload := getAllTasks()
-	// json.NewEncoder(w).Encode(payload)
-}
-
-func CreateTask(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/x-www-form-urlencoded")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "POST")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-
-	var task models.UserInfo
-
-	json.NewDecoder(r.Body).Decode(&task)
-	// insertOneTask(task)
-	json.NewEncoder(w).Encode(task)
-}
 
 func TaskComplete(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/x-www-form-urlencoded")

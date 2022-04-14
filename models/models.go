@@ -39,3 +39,9 @@ type Metadata struct {
 type Response struct {
 	Data map[string]interface{} `json:"-"`
 }
+
+type PaymentDetails struct {
+	Metadata 		map[string]interface{} `json:"metadata,omitempty"`
+	Amount 			map[string]interface{} `json:"amount,omitempty"`
+	Source			map[string]interface{} `json:"source,omitempty"`
+}
