@@ -2,12 +2,14 @@ package models
 
 import (
 	"github.com/google/uuid"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type UserInfo struct {
-	Username string `json:"username,omitempty"`
-	Password string `json:"password,omitempty"`
-	Payment  int    `json:"payment,omitempty"`
+	ID       primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
+	Username string             `json:"username,omitempty"`
+	Password string             `json:"password,omitempty"`
+	Payment  int                `json:"payment,omitempty"`
 	CardDetails
 }
 

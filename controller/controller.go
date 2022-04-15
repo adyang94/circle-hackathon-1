@@ -1,4 +1,4 @@
-package middleware
+package controller
 
 import (
 	"context"
@@ -38,7 +38,7 @@ var testCards = []string{
 
 func init() {
 	loadTheEnv()
-	// createDBInstance()
+	createDBInstance()
 }
 
 func loadTheEnv() {
@@ -207,6 +207,25 @@ func checkPaymentMethod(payment models.PaymentDetails) bool {
 		}
 	}
 	return false
+}
+
+func AddSingleUser(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/x-www-form-urlencoded")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "POST")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+	var user models.UserInfo
+
+	json.NewDecoder(r.Body).Decode(&user)
+
+	insertResult, err := collection.InsertOne(context.Background(), user)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Println("Added one new user:  ", insertResult)
 }
 
 /*

@@ -1,19 +1,21 @@
 package router
 
 import (
-	"github.com/adyang94/circle-hackathon1/middleware"
+	"github.com/adyang94/circle-hackathon1/controller"
 	"github.com/gorilla/mux"
 )
 
 func Router() *mux.Router {
 	router := mux.NewRouter()
-	router.HandleFunc("/api/login", middleware.Login).Methods("POST", "OPTIONS")
+	router.HandleFunc("/api/login", controller.Login).Methods("POST", "OPTIONS")
 
-	router.HandleFunc("/api/getListOfPayments", middleware.GetListOfPayments).Methods("GET", "OPTIONS")
+	router.HandleFunc("/api/getListOfPayments", controller.GetListOfPayments).Methods("GET", "OPTIONS")
 
-	router.HandleFunc("/api/createPayment", middleware.CreatePayment).Methods("POST", "OPTIONS")
+	router.HandleFunc("/api/createPayment", controller.CreatePayment).Methods("POST", "OPTIONS")
 
-	router.HandleFunc("/api/createCard", middleware.CreateCard).Methods("POST", "OPTIONS")
+	router.HandleFunc("/api/createCard", controller.CreateCard).Methods("POST", "OPTIONS")
+
+	router.HandleFunc("/api/addNewUser", controller.AddSingleUser).Methods("POST", "OPTIONS")
 
 	/*
 		router.HandleFunc("/api/task", middleware.GetAllTasks).Methods("GET", "OPTIONS")
