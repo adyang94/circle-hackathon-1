@@ -1,6 +1,7 @@
 package models
 
 import (
+	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -46,4 +47,9 @@ type PaymentDetails struct {
 	Metadata map[string]interface{} `json:"metadata,omitempty"`
 	Amount   map[string]interface{} `json:"amount,omitempty"`
 	Source   map[string]interface{} `json:"source,omitempty"`
+}
+
+type Claims struct {
+	Username string `json:"username"`
+	jwt.StandardClaims
 }

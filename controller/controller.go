@@ -10,8 +10,10 @@ import (
 	"os"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/adyang94/circle-hackathon1/models"
+	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
@@ -35,6 +37,8 @@ var users = []models.UserInfo{
 var testCards = []string{
 	"4757140000000001", "5102420000000006",
 }
+
+var jwtKey = []byte("secret_key")
 
 func init() {
 	loadTheEnv()
@@ -86,6 +90,38 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	log.Println("ValidUser:  ", validUser)
 
 	if validUser {
+
+		log.Println("1")
+
+		expirationTime := time.Now().Add(time.Minute * 5)
+		var claims models.Claims
+
+		log.Println("2")
+
+		claims.Username = user.Username
+		claims.StandardClaims = jwt.StandardClaims{
+			ExpiresAt: expirationTime.Unix(),
+		}
+
+		log.Println("3")
+
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+		tokenString, err := token.SignedString(jwtKey)
+
+		log.Println("4", tokenString)
+
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		http.SetCookie(w,
+			&http.Cookie{
+				Name:    "token",
+				Value:   tokenString,
+				Expires: expirationTime,
+			})
+
 		json.NewEncoder(w).Encode(user)
 		return
 	}
@@ -154,7 +190,7 @@ func CreatePayment(w http.ResponseWriter, r *http.Request) {
 
 	if !validPaymentMethod {
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode("Payment Unsuccessful.  Please check submitted information and try again.")
+		json.NewEncoder(w).Encode("Payment Unsuccessful.  Make sure to use test credit cards.")
 		return
 	}
 
@@ -167,7 +203,7 @@ func CreatePayment(w http.ResponseWriter, r *http.Request) {
 
 	url := "https://api-sandbox.circle.com/v1/payments"
 
-	payload := strings.NewReader("{\"metadata\":{\"email\":\"" + PaymentDetails.Metadata["email"].(string) + "\",\"sessionId\":\"DE6FA86F60BB47B379307F851E238617\",\"ipAddress\":\"244.28.239.130\"},\"amount\":{\"amount\":\"" + PaymentDetails.Amount["amount"].(string) + "\",\"currency\":\"USD\"},\"autoCapture\":true,\"source\":{\"id\":\"b8627ae8-732b-4d25-b947-1df8f4007a29\",\"type\":\"card\"},\"idempotencyKey\":\"" + idKey.String() + "\",\"keyId\":\"key1\",\"verification\":\"none\"}")
+	payload := strings.NewReader("{\"metadata\":{\"email\":\"" + PaymentDetails.Metadata["email"].(string) + "\",\"sessionId\":\"DE6FA86F60BB47B379307F851E238617\",\"ipAddress\":\"244.28.239.130\"},\"amount\":{\"amount\":\"" + PaymentDetails.Amount["amount"].(string) + "\",\"currency\":\"USD\"},\"autoCapture\":true,\"source\":{\"id\":\"b8627ae8-732b-4d25-b947-1df8f4007a29\",\"type\":\"card\"},\"idempotencyKey\":\"" + idKey.String() + "\",\"keyId\":\"key1\",zxx\"verification\":\"none\"}")
 
 	log.Println("PAYLOAD: ", payload)
 
