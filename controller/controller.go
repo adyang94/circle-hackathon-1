@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/adyang94/circle-hackathon1/models"
+	"github.com/adyang94/circle-hackathon1/middleware"
 	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
@@ -26,7 +27,7 @@ import (
 
 var collection *mongo.Collection
 
-var token string = "Bearer QVBJX0tFWTpjYTdmODZlNTNjN2ZmNDdmNjA5ZDRkNjg1ZmFlOTg3Nzo1NTUyYzk3NzkwOTczZmM2M2I5ZTNiNmFlYTgxOTI3Mg=="
+var circleToken string = "Bearer QVBJX0tFWTpjYTdmODZlNTNjN2ZmNDdmNjA5ZDRkNjg1ZmFlOTg3Nzo1NTUyYzk3NzkwOTczZmM2M2I5ZTNiNmFlYTgxOTI3Mg=="
 
 var users = []models.UserInfo{
 	{Username: "client1", Password: "client1", Payment: 123456},
@@ -132,12 +133,68 @@ func Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetListOfPayments(w http.ResponseWriter, r *http.Request) {
+
+	//  Check if user is logged in or has valid JWT.  If not, alert user to login.
+	cookie, err := r.Cookie("token")
+
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode("Please login to get list of payments.")
+		return
+	}
+
+	log.Println("Cookie:  ", cookie, err)
+	tokenStr := cookie.Value
+	middleware.ValidateAndRefreshToken(tokenStr)
+
+	var claims models.Claims
+
+	tkn, err := jwt.ParseWithClaims(tokenStr, claims,
+		func(t *jwt.Token) (interface{}, error) {
+			return jwtKey, nil
+		})
+
+	if err != nil {
+		if err == jwt.ErrSignatureInvalid {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	if !tkn.Valid {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	// if time.Unix(claims.ExpiresAt, 0).Sub(time.Now()) > 30*time.Second {
+	// 	w.WriteHeader(http.StatusBadRequest)
+	// 	return
+	// }
+
+	expirationTime := time.Now().Add(time.Minute * 5)
+
+	claims.ExpiresAt = expirationTime.Unix()
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString(jwtKey)
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	http.SetCookie(w,
+		&http.Cookie{
+			Name:    "refresh_token",
+			Value:   tokenString,
+			Expires: expirationTime,
+		})
+
 	fmt.Println("Get list of payments!")
 
 	//  Note::  Circle API returns all payments from then token specified, whether from same or different users.
 	//  We will use logged in users payment id to parse the list of payments, and return those that match.
-
-	//  Check if user is logged in or has valid JWT.  If not, alert user to login.
 
 	//  Check if user has a payment stored
 
@@ -146,7 +203,7 @@ func GetListOfPayments(w http.ResponseWriter, r *http.Request) {
 
 	req, _ := http.NewRequest("GET", url, nil)
 	req.Header.Add("Accept", "application/json")
-	req.Header.Add("Authorization", token)
+	req.Header.Add("Authorization", circleToken)
 
 	res, _ := http.DefaultClient.Do(req)
 
@@ -211,7 +268,7 @@ func CreatePayment(w http.ResponseWriter, r *http.Request) {
 
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Authorization", token)
+	req.Header.Add("Authorization", circleToken)
 
 	res, _ := http.DefaultClient.Do(req)
 
@@ -222,9 +279,7 @@ func CreatePayment(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("RESPONSE BODY:  ", string(body))
 }
 
-func CreateCard(w http.ResponseWriter, r *http.Request) {
 
-}
 
 func checkUserInfo(user models.UserInfo) bool {
 	for _, profile := range users {
