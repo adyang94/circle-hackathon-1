@@ -50,6 +50,6 @@ type PaymentDetails struct {
 }
 
 type Claims struct {
-	Username string `json:"username"`
+	Username string `json:"Username"`
 	jwt.StandardClaims
 }

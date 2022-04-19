@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/adyang94/circle-hackathon1/models"
 	"github.com/adyang94/circle-hackathon1/middleware"
+	"github.com/adyang94/circle-hackathon1/models"
 	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
@@ -25,6 +25,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+/* ------------------------- Variables ------------------------- */
 var collection *mongo.Collection
 
 var circleToken string = "Bearer QVBJX0tFWTpjYTdmODZlNTNjN2ZmNDdmNjA5ZDRkNjg1ZmFlOTg3Nzo1NTUyYzk3NzkwOTczZmM2M2I5ZTNiNmFlYTgxOTI3Mg=="
@@ -39,8 +40,9 @@ var testCards = []string{
 	"4757140000000001", "5102420000000006",
 }
 
-var jwtKey = []byte("secret_key")
+var jwtKey = []byte(os.Getenv("JWT_KEY"))
 
+/* ------------------------- Code ------------------------- */
 func init() {
 	loadTheEnv()
 	createDBInstance()
@@ -95,6 +97,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		log.Println("1")
 
 		expirationTime := time.Now().Add(time.Minute * 5)
+
 		var claims models.Claims
 
 		log.Println("2")
@@ -104,7 +107,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 			ExpiresAt: expirationTime.Unix(),
 		}
 
-		log.Println("3")
+		log.Println("3: ", claims)
 
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 		tokenString, err := token.SignedString(jwtKey)
@@ -134,62 +137,63 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 func GetListOfPayments(w http.ResponseWriter, r *http.Request) {
 
-	//  Check if user is logged in or has valid JWT.  If not, alert user to login.
-	cookie, err := r.Cookie("token")
+	w = middleware.ValidateAndRefreshToken(w, r)
 
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode("Please login to get list of payments.")
-		return
-	}
+	// //  Check if user is logged in or has valid JWT.  If not, alert user to login.
+	// cookie, err := r.Cookie("token")
+	// log.Println("Cookie:  ", cookie)
 
-	log.Println("Cookie:  ", cookie, err)
-	tokenStr := cookie.Value
-	middleware.ValidateAndRefreshToken(tokenStr)
-
-	var claims models.Claims
-
-	tkn, err := jwt.ParseWithClaims(tokenStr, claims,
-		func(t *jwt.Token) (interface{}, error) {
-			return jwtKey, nil
-		})
-
-	if err != nil {
-		if err == jwt.ErrSignatureInvalid {
-			w.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	if !tkn.Valid {
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-
-	// if time.Unix(claims.ExpiresAt, 0).Sub(time.Now()) > 30*time.Second {
+	// if err != nil {
 	// 	w.WriteHeader(http.StatusBadRequest)
+	// 	json.NewEncoder(w).Encode("Please login to get list of payments.")
 	// 	return
 	// }
 
-	expirationTime := time.Now().Add(time.Minute * 5)
+	// log.Println("Cookie:  ", cookie, err)
 
-	claims.ExpiresAt = expirationTime.Unix()
+	// tokenStr := cookie.Value
+	// var claims = &models.Claims{}
+	// log.Println("token string1: ", tokenStr, "claims: ", claims)
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString(jwtKey)
+	// tkn, err := jwt.ParseWithClaims(tokenStr, claims,
+	// 	func(t *jwt.Token) (interface{}, error) {
+	// 		return jwtKey, nil
+	// 	},
+	// )
 
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
+	// log.Println("token string: ", tokenStr, "\ntkn: ", tkn, "\nerror: ", err)
 
-	http.SetCookie(w,
-		&http.Cookie{
-			Name:    "refresh_token",
-			Value:   tokenString,
-			Expires: expirationTime,
-		})
+	// if err != nil {
+	// 	if err == jwt.ErrSignatureInvalid {
+	// 		w.WriteHeader(http.StatusUnauthorized)
+	// 		return
+	// 	}
+	// 	w.WriteHeader(http.StatusBadRequest)
+	// 	return
+	// }
+	// if !tkn.Valid {
+	// 	w.WriteHeader(http.StatusUnauthorized)
+	// 	return
+	// }
+
+	// expirationTime := time.Now().Add(time.Minute * 5)
+
+	// claims.ExpiresAt = expirationTime.Unix()
+
+	// token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	// tokenString, err := token.SignedString(jwtKey)
+
+	// if err != nil {
+	// 	w.WriteHeader(http.StatusInternalServerError)
+	// 	return
+	// }
+
+	// http.SetCookie(w,
+	// 	&http.Cookie{
+	// 		Name:    "refresh_token",
+	// 		Value:   tokenString,
+	// 		Expires: expirationTime,
+	// 	})
 
 	fmt.Println("Get list of payments!")
 
@@ -217,7 +221,7 @@ func GetListOfPayments(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("3: ", res)
 	fmt.Println("4: ", res.Body)
-	fmt.Println("5: ", string(body))
+	// fmt.Println("5: ", string(body))
 	// fmt.Println("6: ", body)
 
 	//  Response back to client
@@ -278,8 +282,6 @@ func CreatePayment(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("RESPONSE:  ", res)
 	fmt.Println("RESPONSE BODY:  ", string(body))
 }
-
-
 
 func checkUserInfo(user models.UserInfo) bool {
 	for _, profile := range users {
