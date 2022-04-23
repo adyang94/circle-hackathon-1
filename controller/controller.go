@@ -12,7 +12,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/adyang94/circle-hackathon1/middleware"
 	"github.com/adyang94/circle-hackathon1/models"
 	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
@@ -137,63 +136,63 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 func GetListOfPayments(w http.ResponseWriter, r *http.Request) {
 
-	w = middleware.ValidateAndRefreshToken(w, r)
+	// w = middleware.ValidateAndRefreshToken(w, r)
 
-	// //  Check if user is logged in or has valid JWT.  If not, alert user to login.
-	// cookie, err := r.Cookie("token")
-	// log.Println("Cookie:  ", cookie)
+	//  Check if user is logged in or has valid JWT.  If not, alert user to login.
+	cookie, err := r.Cookie("token")
+	log.Println("Cookie:  ", cookie)
 
-	// if err != nil {
-	// 	w.WriteHeader(http.StatusBadRequest)
-	// 	json.NewEncoder(w).Encode("Please login to get list of payments.")
-	// 	return
-	// }
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode("Please login to get list of payments.")
+		return
+	}
 
-	// log.Println("Cookie:  ", cookie, err)
+	log.Println("Cookie:  ", cookie, err)
 
-	// tokenStr := cookie.Value
-	// var claims = &models.Claims{}
-	// log.Println("token string1: ", tokenStr, "claims: ", claims)
+	tokenStr := cookie.Value
+	var claims = &models.Claims{}
+	log.Println("token string1: ", tokenStr, "claims: ", claims)
 
-	// tkn, err := jwt.ParseWithClaims(tokenStr, claims,
-	// 	func(t *jwt.Token) (interface{}, error) {
-	// 		return jwtKey, nil
-	// 	},
-	// )
+	tkn, err := jwt.ParseWithClaims(tokenStr, claims,
+		func(t *jwt.Token) (interface{}, error) {
+			return jwtKey, nil
+		},
+	)
 
-	// log.Println("token string: ", tokenStr, "\ntkn: ", tkn, "\nerror: ", err)
+	log.Println("token string: ", tokenStr, "\ntkn: ", tkn, "\nerror: ", err)
 
-	// if err != nil {
-	// 	if err == jwt.ErrSignatureInvalid {
-	// 		w.WriteHeader(http.StatusUnauthorized)
-	// 		return
-	// 	}
-	// 	w.WriteHeader(http.StatusBadRequest)
-	// 	return
-	// }
-	// if !tkn.Valid {
-	// 	w.WriteHeader(http.StatusUnauthorized)
-	// 	return
-	// }
+	if err != nil {
+		if err == jwt.ErrSignatureInvalid {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	if !tkn.Valid {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
 
-	// expirationTime := time.Now().Add(time.Minute * 5)
+	expirationTime := time.Now().Add(time.Minute * 5)
 
-	// claims.ExpiresAt = expirationTime.Unix()
+	claims.ExpiresAt = expirationTime.Unix()
 
-	// token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	// tokenString, err := token.SignedString(jwtKey)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString(jwtKey)
 
-	// if err != nil {
-	// 	w.WriteHeader(http.StatusInternalServerError)
-	// 	return
-	// }
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
-	// http.SetCookie(w,
-	// 	&http.Cookie{
-	// 		Name:    "refresh_token",
-	// 		Value:   tokenString,
-	// 		Expires: expirationTime,
-	// 	})
+	http.SetCookie(w,
+		&http.Cookie{
+			Name:    "refresh_token",
+			Value:   tokenString,
+			Expires: expirationTime,
+		})
 
 	fmt.Println("Get list of payments!")
 
