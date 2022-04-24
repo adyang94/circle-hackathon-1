@@ -194,14 +194,15 @@ func GetListOfPayments(w http.ResponseWriter, r *http.Request) {
 			Expires: expirationTime,
 		})
 
-	fmt.Println("Get list of payments!")
-
 	//  Note::  Circle API returns all payments from then token specified, whether from same or different users.
 	//  We will use logged in users payment id to parse the list of payments, and return those that match.
 
 	//  Check if user has a payment stored
 
 	//  Making call to Circle API
+
+	fmt.Println("Get list of payments!")
+
 	url := "https://api-sandbox.circle.com/v1/payments"
 
 	req, _ := http.NewRequest("GET", url, nil)

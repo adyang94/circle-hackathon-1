@@ -85,3 +85,11 @@ func ValidateAndRefreshToken(w http.ResponseWriter, r *http.Request) http.Respon
 
 	return w
 }
+
+func ValidateToken(w http.ResponseWriter, r *http.Request) http.ResponseWriter {
+
+}
+
+func RefreshToken(w http.ResponseWriter, r *http.Request) http.ResponseWriter {
+
+}
