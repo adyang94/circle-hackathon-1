@@ -11,12 +11,14 @@ import (
 	"github.com/golang-jwt/jwt"
 )
 
+var jwtKey = []byte(os.Getenv("JWT_KEY"))
+
 func ValidateAndRefreshToken1(tokenStr string) bool {
 
 	return true
 }
 
-func ValidateAndRefreshToken(w http.ResponseWriter, r *http.Request) http.ResponseWriter {
+func ValidateAndRefreshToken(w http.ResponseWriter, r *http.Request) bool {
 	log.Println("Validate and Refresh Token")
 
 	cookie, err := r.Cookie("token")
@@ -24,7 +26,7 @@ func ValidateAndRefreshToken(w http.ResponseWriter, r *http.Request) http.Respon
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode("Please login to get list of payments.")
-		return w
+		return false
 	}
 
 	log.Println("Cookie:  ", cookie, err)
@@ -32,8 +34,7 @@ func ValidateAndRefreshToken(w http.ResponseWriter, r *http.Request) http.Respon
 
 	var claims = &models.Claims{}
 
-	var jwtKey = []byte(os.Getenv("JWT_KEY"))
-	log.Println("refresh token str: ", tokenStr, "claims: ", claims)
+	// log.Println("refresh token str: ", tokenStr, "claims: ", claims)
 
 	tkn, err := jwt.ParseWithClaims(tokenStr, claims,
 		func(t *jwt.Token) (interface{}, error) {
@@ -47,22 +48,17 @@ func ValidateAndRefreshToken(w http.ResponseWriter, r *http.Request) http.Respon
 		if err == jwt.ErrSignatureInvalid {
 			log.Println("refresh token2")
 			w.WriteHeader(http.StatusUnauthorized)
-			return w
+			return false
 		}
 		log.Println("refresh token3")
 		w.WriteHeader(http.StatusBadRequest)
-		return w
+		return false
 	}
 	if !tkn.Valid {
 		log.Println("refresh token4")
 		w.WriteHeader(http.StatusUnauthorized)
-		return w
+		return false
 	}
-
-	// if time.Unix(claims.ExpiresAt, 0).Sub(time.Now()) > 30*time.Second {
-	// 	w.WriteHeader(http.StatusBadRequest)
-	// 	return
-	// }
 
 	expirationTime := time.Now().Add(time.Minute * 5)
 
@@ -73,7 +69,8 @@ func ValidateAndRefreshToken(w http.ResponseWriter, r *http.Request) http.Respon
 
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		return w
+		log.Println("refresh token6")
+		return false
 	}
 
 	http.SetCookie(w,
@@ -83,13 +80,5 @@ func ValidateAndRefreshToken(w http.ResponseWriter, r *http.Request) http.Respon
 			Expires: expirationTime,
 		})
 
-	return w
-}
-
-func ValidateToken(w http.ResponseWriter, r *http.Request) http.ResponseWriter {
-
-}
-
-func RefreshToken(w http.ResponseWriter, r *http.Request) http.ResponseWriter {
-
+	return true
 }

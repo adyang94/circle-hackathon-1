@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/adyang94/circle-hackathon1/middleware"
 	"github.com/adyang94/circle-hackathon1/models"
 	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
@@ -93,25 +94,25 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	if validUser {
 
-		log.Println("1")
+		// log.Println("1")
 
 		expirationTime := time.Now().Add(time.Minute * 5)
 
 		var claims models.Claims
 
-		log.Println("2")
+		// log.Println("2")
 
 		claims.Username = user.Username
 		claims.StandardClaims = jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 		}
 
-		log.Println("3: ", claims)
+		// log.Println("3: ", claims)
 
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 		tokenString, err := token.SignedString(jwtKey)
 
-		log.Println("4", tokenString)
+		// log.Println("4", tokenString)
 
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -136,7 +137,11 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 func GetListOfPayments(w http.ResponseWriter, r *http.Request) {
 
-	// w = middleware.ValidateAndRefreshToken(w, r)
+	validToken := middleware.ValidateAndRefreshToken(w, r)
+
+	if !validToken {
+		log.Println("INVALID TOKEN: ", validToken)
+	}
 
 	//  Check if user is logged in or has valid JWT.  If not, alert user to login.
 	cookie, err := r.Cookie("token")
@@ -148,51 +153,51 @@ func GetListOfPayments(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Println("Cookie:  ", cookie, err)
+	// log.Println("Cookie1:  ", cookie, err)
 
-	tokenStr := cookie.Value
-	var claims = &models.Claims{}
-	log.Println("token string1: ", tokenStr, "claims: ", claims)
+	// tokenStr := cookie.Value
+	// var claims = &models.Claims{}
+	// // log.Println("token string1: ", tokenStr, "claims: ", claims)
 
-	tkn, err := jwt.ParseWithClaims(tokenStr, claims,
-		func(t *jwt.Token) (interface{}, error) {
-			return jwtKey, nil
-		},
-	)
+	// tkn, err := jwt.ParseWithClaims(tokenStr, claims,
+	// 	func(t *jwt.Token) (interface{}, error) {
+	// 		return jwtKey, nil
+	// 	},
+	// )
 
-	log.Println("token string: ", tokenStr, "\ntkn: ", tkn, "\nerror: ", err)
+	// log.Println("token parsed with claims: ", tokenStr, "\ntkn: ", tkn, "\nerror: ", err)
 
-	if err != nil {
-		if err == jwt.ErrSignatureInvalid {
-			w.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	if !tkn.Valid {
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
+	// if err != nil {
+	// 	if err == jwt.ErrSignatureInvalid {
+	// 		w.WriteHeader(http.StatusUnauthorized)
+	// 		return
+	// 	}
+	// 	w.WriteHeader(http.StatusBadRequest)
+	// 	return
+	// }
+	// if !tkn.Valid {
+	// 	w.WriteHeader(http.StatusUnauthorized)
+	// 	return
+	// }
 
-	expirationTime := time.Now().Add(time.Minute * 5)
+	// expirationTime := time.Now().Add(time.Minute * 5)
 
-	claims.ExpiresAt = expirationTime.Unix()
+	// claims.ExpiresAt = expirationTime.Unix()
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString(jwtKey)
+	// token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	// tokenString, err := token.SignedString(jwtKey)
 
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
+	// if err != nil {
+	// 	w.WriteHeader(http.StatusInternalServerError)
+	// 	return
+	// }
 
-	http.SetCookie(w,
-		&http.Cookie{
-			Name:    "refresh_token",
-			Value:   tokenString,
-			Expires: expirationTime,
-		})
+	// http.SetCookie(w,
+	// 	&http.Cookie{
+	// 		Name:    "refresh_token",
+	// 		Value:   tokenString,
+	// 		Expires: expirationTime,
+	// 	})
 
 	//  Note::  Circle API returns all payments from then token specified, whether from same or different users.
 	//  We will use logged in users payment id to parse the list of payments, and return those that match.
@@ -211,16 +216,16 @@ func GetListOfPayments(w http.ResponseWriter, r *http.Request) {
 
 	res, _ := http.DefaultClient.Do(req)
 
-	fmt.Println("1: ", res)
+	// fmt.Println("1: ", res)
 
-	fmt.Println("2: ", res.Body)
-	fmt.Println("2.1: ", *res)
+	// fmt.Println("2: ", res.Body)
+	// fmt.Println("2.1: ", *res)
 
 	defer res.Body.Close()
 	body, _ := ioutil.ReadAll(res.Body)
 
-	fmt.Println("3: ", res)
-	fmt.Println("4: ", res.Body)
+	// fmt.Println("3: ", res)
+	// fmt.Println("4: ", res.Body)
 	// fmt.Println("5: ", string(body))
 	// fmt.Println("6: ", body)
 
